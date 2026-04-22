@@ -3,489 +3,362 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Candela Korea — Parts Search</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Commission Calculator</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap');
+
 :root {
-  --bg: #F7F6F2;
-  --surface: #FFFFFF;
-  --border: #E2E0D8;
-  --border-strong: #C8C5BB;
-  --text: #1A1916;
-  --text-muted: #6B6860;
-  --text-faint: #A8A59E;
-  --accent: #1A1916;
-  --GMP: #D4E8FF;
-  --GMP-t: #0A3D6B;
-  --GMPP: #D4F0E0;
-  --GMPP-t: #0A4D28;
-  --VBP: #F0D4F8;
-  --VBP-t: #4D0A6B;
-  --Nordlys: #FFE8D4;
-  --Nordlys-t: #6B2D0A;
-  --Picoway: #FFD4E0;
-  --Picoway-t: #6B0A28;
-  --etc: #E8E6E0;
-  --etc-t: #3D3B35;
+  --bg: #f5f2ec;
+  --surface: #ffffff;
+  --border: #e0dbd0;
+  --text: #1a1814;
+  --muted: #8a847a;
+  --accent: #2d5a3d;
+  --accent-light: #e8f0eb;
+  --mono: 'DM Mono', monospace;
+  --serif: 'Instrument Serif', serif;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Pretendard', -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
+  font-family: var(--mono);
   min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 1.5rem 2rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-top {
   display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 24px;
 }
 
-.site-title {
-  font-size: 13px;
-  font-weight: 500;
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 36px;
+  width: 100%;
+  max-width: 480px;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.subtitle {
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 32px;
+}
+
+.row { margin-bottom: 24px; }
+
+label {
+  display: block;
+  font-size: 0.65rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--muted);
+  margin-bottom: 8px;
 }
 
-.page-title {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding-bottom: 1rem;
-}
-
-.search-wrap {
-  flex: 1;
-  min-width: 220px;
-  position: relative;
-}
-
-.search-wrap svg {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-faint);
-  pointer-events: none;
-}
-
-input[type="text"] {
+.calc-input {
   width: 100%;
-  height: 38px;
-  padding: 0 12px 0 38px;
-  border: 1px solid var(--border-strong);
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
   border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 1rem;
   background: var(--bg);
-  font-family: inherit;
-  font-size: 14px;
   color: var(--text);
   outline: none;
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color 0.15s;
 }
+.calc-input:focus { border-color: var(--accent); }
 
-input[type="text"]:focus {
-  border-color: var(--text);
-  box-shadow: 0 0 0 3px rgba(26,25,22,0.08);
-  background: var(--surface);
-}
-
-select {
-  height: 38px;
-  padding: 0 32px 0 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  background: var(--bg);
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--text);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6860' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  transition: border-color .15s;
-}
-
-select:focus { border-color: var(--text); outline: none; }
-
-.main { padding: 1.25rem 2rem 3rem; }
-
-.stats-bar {
+/* Stepper */
+.stepper {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.stats-bar span strong {
-  color: var(--text);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.table-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  align-items: stretch;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
   overflow: hidden;
-  overflow-x: auto;
+  width: fit-content;
 }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 760px;
-}
-
-thead th {
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-faint);
+.step-btn {
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
+  border: none;
+  padding: 13px 22px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--mono);
+  transition: background 0.1s;
+  user-select: none;
 }
-
-thead th.r { text-align: right; }
-
-tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background .1s;
-}
-
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: #F9F8F5; }
-
-td {
-  padding: 10px 14px;
-  vertical-align: middle;
-  font-size: 13px;
-}
-
-td.desc { max-width: 260px; white-space: normal; word-break: break-word; line-height: 1.4; }
-
-td.mono {
-  font-family: 'DM Mono', monospace;
-  font-size: 11.5px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-td.price {
-  text-align: right;
-  font-family: 'DM Mono', monospace;
-  font-size: 12.5px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-td.note { font-size: 12px; color: var(--text-muted); max-width: 160px; white-space: normal; }
-
-.badge {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.badge-cat {
-  background: var(--bg);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  font-size: 11px;
+.step-btn:hover { background: var(--accent-light); color: var(--accent); }
+.step-btn:active { background: var(--accent); color: white; }
+.step-val {
+  padding: 13px 32px;
+  font-size: 1.1rem;
   font-weight: 500;
-}
-
-.no-val { color: var(--text-faint); font-size: 12px; }
-
-mark {
-  background: #FFF176;
-  color: inherit;
-  border-radius: 2px;
-  padding: 0 1px;
-}
-
-.empty-state {
+  border-left: 1.5px solid var(--border);
+  border-right: 1.5px solid var(--border);
+  min-width: 80px;
   text-align: center;
-  padding: 4rem 2rem;
-  color: var(--text-muted);
+  background: var(--surface);
 }
+.step-note { font-size: 0.68rem; color: var(--muted); margin-top: 7px; }
 
-.empty-state .icon { font-size: 32px; margin-bottom: .75rem; }
-.empty-state p { font-size: 14px; }
+/* Button groups */
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.price-incl { color: var(--text); }
-.price-base { color: var(--text-muted); }
+.choice-btn {
+  padding: 10px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.12s;
+  line-height: 1.4;
+  text-align: left;
+}
+.choice-btn:hover { border-color: var(--accent); color: var(--accent); }
+.choice-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+.choice-btn .sub { display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 2px; }
+.choice-btn.active .sub { opacity: 0.7; }
 
-@media (max-width: 640px) {
-  header { padding: 1rem 1rem 0; }
-  .main { padding: 1rem 1rem 3rem; }
-  .header-top { flex-direction: column; gap: .25rem; }
+.rate-group { display: flex; gap: 8px; }
+.rate-btn {
+  flex: 1;
+  padding: 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.12s;
+  text-align: center;
+}
+.rate-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rate-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* Divider */
+.divider { border: none; border-top: 1.5px solid var(--border); margin: 28px 0; }
+
+/* Result */
+.result-box {
+  background: var(--text);
+  color: white;
+  border-radius: 12px;
+  padding: 24px;
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.result-row:last-child { border-bottom: none; }
+.r-label { font-size: 0.67rem; opacity: 0.45; letter-spacing: 0.04em; }
+.r-val { font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.r-val.empty { opacity: 0.3; }
+
+.result-total {
+  margin-top: 10px;
+  padding-top: 16px !important;
+  border-top: 1px solid rgba(255,255,255,0.18) !important;
+  border-bottom: none !important;
+}
+.result-total .r-label { font-size: 0.72rem; opacity: 0.6; }
+.result-total .r-val {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  color: #a8d5b5;
+}
+.result-total .r-val.empty { color: rgba(168,213,181,0.3); }
+
+footer {
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 24px;
 }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-top">
-    <span class="site-title">Candela Korea</span>
-    <h1 class="page-title">부속품 가격 검색</h1>
-  </div>
-  <div class="controls">
-    <div class="search-wrap">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="q" placeholder="Part number 또는 설명으로 검색...">
+<div>
+  <div class="card">
+    <h1>Commission<br>Calculator</h1>
+    <p class="subtitle">CANDELA KOREA · VAT INCLUDED</p>
+
+    <div class="row">
+      <label>총 계약금액 (부가세 별도)</label>
+      <input class="calc-input" type="text" id="contractInput" placeholder="예: 147,727,272">
     </div>
-    <select id="sys">
-      <option value="">전체 시스템</option>
-    </select>
-    <select id="cat">
-      <option value="">전체 카테고리</option>
-    </select>
-    <select id="price_filter">
-      <option value="">가격 전체</option>
-      <option value="priced">가격 있는 항목만</option>
-      <option value="unpriced">가격 미정만</option>
-    </select>
-  </div>
-</header>
 
-<main class="main">
-  <div class="stats-bar">
-    <span>검색 결과 <strong id="s-shown">—</strong>건</span>
-    <span>전체 <strong id="s-total">—</strong>건</span>
-    <span>가격 확인 <strong id="s-priced">—</strong>건</span>
+    <div class="row">
+      <label>DCD 박스 수</label>
+      <div class="stepper">
+        <button class="step-btn" id="stepMinus">−</button>
+        <div class="step-val" id="dcdVal">0</div>
+        <button class="step-btn" id="stepPlus">+</button>
+      </div>
+      <div class="step-note" id="dcdNote">차감 없음</div>
+    </div>
+
+    <div class="row">
+      <label>워런티 (Extended Warranty)</label>
+      <div class="btn-group">
+        <button class="choice-btn active" data-warranty="0">없음</button>
+        <button class="choice-btn" data-warranty="21000000">2년 · 2,100만원<span class="sub">'26년~ 납품</span></button>
+        <button class="choice-btn" data-warranty="20000000">2년 · 2,000만원<span class="sub">'26년 이전 납품</span></button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>수수료율</label>
+      <div class="rate-group">
+        <button class="rate-btn" data-rate="0.07">7%</button>
+        <button class="rate-btn active" data-rate="0.10">10%</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="result-box">
+      <div class="result-row">
+        <span class="r-label">총 계약금액</span>
+        <span class="r-val empty" id="rContract">—</span>
+      </div>
+      <div class="result-row">
+        <span class="r-label">DCD 차감</span>
+        <span class="r-val" id="rDCD">없음</span>
+      </div>
+      <div class="result-row">
+        <span class="r-label">워런티 차감</span>
+        <span class="r-val" id="rWarranty">없음</span>
+      </div>
+      <div class="result-row">
+        <span class="r-label">수수료 계산용 실적</span>
+        <span class="r-val empty" id="rActual">—</span>
+      </div>
+      <div class="result-row">
+        <span class="r-label">커미션</span>
+        <span class="r-val empty" id="rComm">—</span>
+      </div>
+      <div class="result-row">
+        <span class="r-label">세액 (10%)</span>
+        <span class="r-val empty" id="rTax">—</span>
+      </div>
+      <div class="result-row result-total">
+        <span class="r-label">최종 커미션 합계 (VAT 포함)</span>
+        <span class="r-val empty" id="rTotal">—</span>
+      </div>
+    </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:80px">시스템</th>
-          <th style="width:140px">Part No.</th>
-          <th>설명</th>
-          <th style="width:75px">카테고리</th>
-          <th class="r" style="width:120px">공급가</th>
-          <th class="r" style="width:120px">소비자가</th>
-          <th style="width:160px">비고</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</main>
+  <footer>Candela Korea Internal Use Only</footer>
+</div>
 
 <script>
-const DATA = [
-  ["GMP","7122-00-9419","Standard Fiber, GMP","Fiber",4000000,4400000,""],
-  ["GMP","7122-00-9746","Large Fiber, GMP","Fiber",4000000,4400000,""],
-  ["GMP","7122-00-9551","6/8/10 attachment, standard","attatch",1000000,1100000,""],
-  ["GMP","7122-00-9552","12/15/18 attachment, standard","attatch",1000000,1100000,""],
-  ["GMP","7122-00-9747","20,22,24mm attachment","attatch",1400000,1540000,"GMP / PP 동일"],
-  ["GMP","7122-00-9401","Standard HP (DCD)","HP",5500000,6050000,""],
-  ["GMP","7122-00-9420","PRO SERIES AIR CLIP","etc",900000,990000,"2026년 1월 1일 수정"],
-  ["GMP","7122-00-9748","Large spot HP (DCD)","HP",7000000,7700000,""],
-  ["GMP","7122-00-9752","Large spot HP (ACC)","HP",7000000,7700000,""],
-  ["GMP","7122-00-9404","PRO SERIES ACC HP W/O AIR CLIP W/O FIBER","HP",3000000,3300000,""],
-  ["GMPP","SBA100775","LSDS Fiber, GMPP","Fiber",6000000,6600000,""],
-  ["GMPP","7123-CE-0635","Large Fiber, GMPP","Fiber",5000000,5500000,""],
-  ["GMPP","7123-CE-0658","Standard Fiber, GMPP","Fiber",4000000,4400000,""],
-  ["GMPP","FIN101958","LSDS (12-26mm) HP set (DCD)","set",17727270,19500000,"Fiber, Handpiece, attachment, DG 포함"],
-  ["GMPP","FIN101959","LSDS (12-26mm) HP set (ACC)","set",17727270,19500000,"Fiber, Handpiece, attachment, DG 포함"],
-  ["GMPP","SBA100838","LSDS, 12/15/18 attachment","attatch",1000000,1100000,""],
-  ["GMPP","SBA101074","LSDS, 26mm attachment","attatch",2000000,2200000,""],
-  ["GMPP","SBA101506","LSDS, 20/22/24 attachment","attatch",1400000,1540000,""],
-  ["GMPP","FIN101204","LSDS Handpiece (DCD)","HP",7000000,7700000,""],
-  ["GMPP","FIN101205","LSDS Handpiece (ACC)","HP",6000000,6600000,""],
-  ["GMPP","7123-CE-0628","Large spot HP, ACC","HP",6000000,6600000,""],
-  ["GMPP","7123-CE-0652","GMPP DCD Large Spot Option Kit","set",12000000,13200000,"Fiber, Handpiece, attachment, DG 포함"],
-  ["GMPP","7123-CE-0653","GMPP ACC Large Spot Option Kit","set",12000000,13200000,"Fiber, Handpiece, attachment, DG 포함"],
-  ["GMPP","7123-00-0609","Large, 26mm attachment, GMPP","attatch",2000000,2200000,""],
-  ["GMPP","7122-00-9747","20,22,24mm attachment","attatch",1000000,1100000,"GMP / PP 동일"],
-  ["GMPP","7122-00-9420","PRO SERIES AIR CLIP","etc",900000,990000,"GMP / PP 동일"],
-  ["GMPP","FIN103337","DCD ST, Options Kit, GMPP","set",null,null,"Fiber, Handpiece, attachment, DG 포함"],
-  ["GMPP","7123-CE-0631","Large spot HP, DCD","HP",7000000,7700000,""],
-  ["GMPP","7123-CE-0632","Standard HP, DCD","HP",7000000,7700000,""],
-  ["GMPP","7122-00-9551","6/8/10 attachment, standard","attatch",1000000,1100000,"GMP / PP 동일"],
-  ["GMPP","7122-00-9552","12/15/18 attachment, standard","attatch",1000000,1100000,""],
-  ["GMPP","7123-CE-0651","GMPP ACC HP AIR CLIP Kit, w/o Fiber","set",4000000,4400000,"ST HP + air clip"],
-  ["GMPP","1303-00-0114","GAUGE, DISTANCE, 20MM LARGE SPOT","DG",30000,33000,""],
-  ["GMPP","1303-00-0115","GAUGE, DISTANCE, 22MM LARGE SPOT","DG",30000,33000,""],
-  ["GMPP","1303-00-1197","DISTANCE GAUGE, 26MM, LARGE SPOT","DG",37500,41250,""],
-  ["GMP","7122-00-9747","LARGE SPOT SLIDER ATTACHMENT ASSY","???",1000000,1100000,""],
-  ["GMPP","7123-00-0063","24mm Distance Gauge Kit (10/pack)","DG",300000,330000,""],
-  ["GMPP","7123-00-0064","22mm Distance Gauge Kit (10/pack)","DG",300000,330000,""],
-  ["GMPP","7123-00-0065","20mm Distance Gauge Kit (10/pack)","DG",300000,330000,""],
-  ["VBP","7122-00-3578","VBEAM 12mm DISTANCE GAUGE","DG",1500000,1650000,""],
-  ["VBP","7122-00-3579","VBEAM 10mm DISTANCE GAUGE","DG",1500000,1650000,""],
-  ["VBP","7122-00-3580","VBEAM 7mm DISTANCE GAUGE","DG",1500000,1650000,""],
-  ["VBP","7122-00-3581","VBEAM 5mm DISTANCE GAUGE","DG",1500000,1650000,""],
-  ["VBP","7122-00-3582","VBEAM 3mm DISTANCE GAUGE","DG",1500000,1650000,""],
-  ["VBP","7122-00-3692","VBP, Delivery system","HP",9000000,9900000,""],
-  ["GMPP","7122-00-9753","5mm spot attachment","attatch",null,null,""],
-  ["GMPP","7122-00-9561","3mm spot attachment","attatch",null,null,""],
-  ["GMPP","7122-00-9560","1.5mm spot attachment","attatch",null,null,""],
-  ["GMPP","7122-00-9657","Ultem kit 5 pcs","etc",200000,220000,"5 pcs"],
-  ["GMPP","7122-00-9418","15mm distance gauge (5ea)","DG",150000,165000,"5 EA"],
-  ["GMPP","7122-00-9424","18mm distance gauge (5ea)","DG",300000,330000,""],
-  ["GMPP","7122-00-9521","12mm distance gauge (5ea)","attatch",null,null,""],
-  ["GMPP","7122-00-9522","10mm distance gauge (5ea)","attatch",null,null,""],
-  ["GMPP","7122-00-9523","6/8mm distance gauge (5ea)","attatch",null,null,""],
-  ["GMPP","7123-00-0065","20mm Large Spot Distance Gauge Kit (10/pack)","DG",300000,330000,""],
-  ["GMPP","7123-00-0064","22mm Large Spot Distance Gauge Kit (10/pack)","DG",300000,330000,""],
-  ["GMPP","7123-00-0063","24mm Large Spot Distance Gauge Kit (10/pack)","DG",300000,330000,""],
-  ["GMPP","7123-00-0665","26mm Spot Distance Gauge Kit (4ea)","DG",150000,165000,""],
-  ["GMPP","7122-00-9758","Large Spot Distance Gauge Kit (10 ea)","DG",250000,275000,""],
-  ["Picoway","8095-00-0488","Google Picoway (532/785/1064)","google",null,572000,""],
-  ["etc","8095-00-0470","Shield patient","google",null,550000,""],
-  ["GMPP","8095-00-0476","Google Gentle (7655/1064)","google",null,330000,""],
-  ["VBP","8095-00-0475","Google Vbeam (592~597)","google",null,660000,""],
-  ["etc","EOS","Sublative tip e2 / eplus","etc",null,1100000,"EOS"],
-  ["etc","EOS","Profound tip (Dermal) 1box (6EA)","etc",null,3300000,"EOS (5+1 판매)"],
-  ["Nordlys","9DNG7650","PPS Dongle 50,000 shot (Nordlys)","etc",4000000,4400000,""],
-  ["Nordlys","9DNG7651","PPS Dongle 100,000 shot (Nordlys)","etc",7000000,7700000,""],
-  ["Nordlys","9APP7744-CNDL","Applicator HR 600 (600–950nm)","HP",4500000,4950000,""],
-  ["Nordlys","9APP7747-CNDL","Applicator VL 555 (555–950nm)","HP",4500000,4950000,""],
-  ["Nordlys","9APP7748-CNDL","Applicator PR 530 (530–750nm)","HP",4500000,4950000,""],
-  ["Nordlys","9APP7749-CNDL","Applicator PL 400 (400–720nm)","HP",4500000,4950000,""],
-  ["Nordlys","9APP7750-CNDL","Applicator Nd:YAG 1064nm","HP",22727270,25000000,""],
-  ["Nordlys","9APP7814-CNDL","Applicator VLS 555 (555–950nm)","HP",5000000,5500000,""],
-  ["Nordlys","9APP7829-CNDL","Applicator PRS 530 (530–750nm)","HP",5000000,5500000,""],
-  ["Nordlys","9APP7830","1550 Applicator","HP",18000000,19800000,"1yr warranty"],
-  ["Nordlys","9APP7909","1940 Applicator","HP",25000000,27500000,"1yr warranty"],
-  ["Picoway","7123-00-0214","Kit, 532 High Energy and 1064 Resolve Handpieces for PW","set",12000000,13200000,""],
-  ["Picoway","7122-00-9862","ASSY, Zoom Distance Gauge (x4) Kit, Picoway","set",1300000,1430000,""],
-  ["Picoway","7123-00-0059","ASSY, Handpiece, Resolve, 1064","HP",null,null,""],
-  ["Picoway","7123-00-0209","ASSY, 532 Resolve Handpiece, High Energy","HP",null,null,""],
-  ["Picoway","7123-00-0536","Assy, Handpiece, Fusion, 532","HP",null,null,""],
-  ["Picoway","7122-00-4052","ASSY Pico Zoom H/P","HP",null,null,""],
-  ["Picoway","7123-00-0497","Pico, 730HP","HP",null,null,""],
-];
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
 
-const SYS_COLORS = {
-  GMP: ['#D4E8FF','#0A3D6B'],
-  GMPP: ['#D4F0E0','#0A4D28'],
-  VBP: ['#F0D4F8','#4D0A6B'],
-  Nordlys: ['#FFE8D4','#6B2D0A'],
-  Picoway: ['#FFD4E0','#6B0A28'],
-  etc: ['#E8E6E0','#3D3B35'],
-};
+let mDCD = 0, mWarranty = 0, mRate = 0.10;
 
-function badgeSys(sys) {
-  const [bg, color] = SYS_COLORS[sys] || SYS_COLORS['etc'];
-  return `<span class="badge" style="background:${bg};color:${color}">${sys}</span>`;
-}
-
-function fmt(n) { return n != null ? n.toLocaleString('ko-KR') : null; }
-
-function hl(text, q) {
-  if (!q) return text;
-  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-  return String(text).replace(re, '<mark>$1</mark>');
-}
-
-const systems = [...new Set(DATA.map(r => r[0]))].sort();
-const cats = [...new Set(DATA.map(r => r[3]))].sort();
-
-const sysEl = document.getElementById('sys');
-const catEl = document.getElementById('cat');
-
-systems.forEach(s => {
-  const o = document.createElement('option');
-  o.value = s; o.textContent = s;
-  sysEl.appendChild(o);
-});
-cats.forEach(c => {
-  const o = document.createElement('option');
-  o.value = c; o.textContent = c;
-  catEl.appendChild(o);
+// 계약금액 입력
+document.getElementById('contractInput').addEventListener('input', function() {
+  let raw = this.value.replace(/[^0-9]/g, '');
+  this.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
+  calc();
 });
 
-function render() {
-  const q = document.getElementById('q').value.trim().toLowerCase();
-  const sys = sysEl.value;
-  const cat = catEl.value;
-  const pf = document.getElementById('price_filter').value;
+// DCD 스테퍼
+document.getElementById('stepMinus').addEventListener('click', () => {
+  mDCD = Math.max(0, mDCD - 1);
+  updateDCD();
+  calc();
+});
+document.getElementById('stepPlus').addEventListener('click', () => {
+  mDCD++;
+  updateDCD();
+  calc();
+});
+function updateDCD() {
+  document.getElementById('dcdVal').textContent = mDCD;
+  const amt = mDCD * 750000;
+  document.getElementById('dcdNote').textContent = mDCD > 0
+    ? `${mDCD}박스 × 750,000 = -${fmt(amt)}원 차감`
+    : '차감 없음';
+}
 
-  const filtered = DATA.filter(r => {
-    if (sys && r[0] !== sys) return false;
-    if (cat && r[3] !== cat) return false;
-    if (pf === 'priced' && r[4] == null && r[5] == null) return false;
-    if (pf === 'unpriced' && (r[4] != null || r[5] != null)) return false;
-    if (q) {
-      const hay = (r[1] + ' ' + r[2] + ' ' + r[6]).toLowerCase();
-      return hay.includes(q);
-    }
-    return true;
+// 워런티 버튼
+document.querySelectorAll('.choice-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mWarranty = parseInt(btn.dataset.warranty);
+    calc();
   });
+});
 
-  const priced = DATA.filter(r => r[4] != null || r[5] != null).length;
-  document.getElementById('s-total').textContent = DATA.length;
-  document.getElementById('s-shown').textContent = filtered.length;
-  document.getElementById('s-priced').textContent = priced;
+// 수수료율 버튼
+document.querySelectorAll('.rate-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mRate = parseFloat(btn.dataset.rate);
+    calc();
+  });
+});
 
-  const tbody = document.getElementById('tbody');
+function setVal(id, text, isEmpty) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.toggle('empty', !!isEmpty);
+}
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
-      <div class="icon">🔍</div>
-      <p>검색 결과가 없습니다.</p>
-    </div></td></tr>`;
+function calc() {
+  const raw = document.getElementById('contractInput').value.replace(/[^0-9]/g, '');
+  const contract = raw ? parseInt(raw) : 0;
+
+  if (!contract) {
+    setVal('rContract', '—', true);
+    setVal('rActual', '—', true);
+    setVal('rComm', '—', true);
+    setVal('rTax', '—', true);
+    setVal('rTotal', '—', true);
+    document.getElementById('rDCD').textContent = '없음';
+    document.getElementById('rWarranty').textContent = '없음';
     return;
   }
 
-  tbody.innerHTML = filtered.map(r => {
-    const p = fmt(r[4]);
-    const i = fmt(r[5]);
-    return `<tr>
-      <td>${badgeSys(r[0])}</td>
-      <td class="mono">${hl(r[1], q)}</td>
-      <td class="desc">${hl(r[2], q)}</td>
-      <td><span class="badge badge-cat">${r[3]}</span></td>
-      <td class="price">${p ? `<span class="price-base">${p}</span>` : '<span class="no-val">—</span>'}</td>
-      <td class="price">${i ? `<span class="price-incl">${i}</span>` : '<span class="no-val">—</span>'}</td>
-      <td class="note">${hl(r[6], q)}</td>
-    </tr>`;
-  }).join('');
+  const dcdAmt = mDCD * 750000;
+  const actual = contract - dcdAmt - mWarranty;
+  const comm = actual * mRate;
+  const tax = comm * 0.1;
+  const total = comm + tax;
+
+  setVal('rContract', fmt(contract), false);
+  document.getElementById('rDCD').textContent = dcdAmt > 0 ? `-${fmt(dcdAmt)}` : '없음';
+  document.getElementById('rWarranty').textContent = mWarranty > 0 ? `-${fmt(mWarranty)}` : '없음';
+  setVal('rActual', fmt(actual), false);
+  setVal('rComm', fmt(comm), false);
+  setVal('rTax', fmt(tax), false);
+  setVal('rTotal', fmt(total), false);
 }
-
-document.getElementById('q').addEventListener('input', render);
-sysEl.addEventListener('change', render);
-catEl.addEventListener('change', render);
-document.getElementById('price_filter').addEventListener('change', render);
-
-render();
 </script>
 </body>
 </html>
