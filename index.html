@@ -2,174 +2,135 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Candela Demo & Agreement Generator</title>
-    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <title>Candela Demo System</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
-
-        :root {
-            --bg: #f4f6fb;
-            --surface: #ffffff;
-            --border: #e4e8f3;
-            --accent: #3b7ef8;
-            --accent2: #6c4ff5;
-            --text: #1a1d2e;
-            --muted: #7a8099;
-            --radius: 12px;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); padding: 32px 16px; }
-        .container { max-width: 760px; margin: 0 auto; }
-
-        header { text-align: center; margin-bottom: 40px; }
-        .logo-tag { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-size: 11px; font-weight: 600; letter-spacing: 2px; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; margin-bottom: 14px; }
-        h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #2c3e50; }
-
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .card-title { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-        .row.single { grid-template-columns: 1fr; }
-        .field { display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 11px; font-weight: 500; color: var(--muted); }
-        input, select, textarea { background: #f9fafd; border: 1px solid var(--border); border-radius: 7px; padding: 10px 13px; font-size: 13px; outline: none; width: 100%; }
-        input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 126, 248, 0.1); }
-
-        .spec-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 12px; color: var(--muted); background: #f9fafd; transition: 0.2s; margin: 4px; }
-        .spec-chip.active { background: rgba(59, 126, 248, 0.15); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-
-        .btn-generate { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: var(--radius); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-generate:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        .agreement-box { background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 12px; line-height: 1.6; color: #555; height: 150px; overflow-y: auto; margin-bottom: 15px; border: 1px solid var(--border); }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        :root { --accent: #3b7ef8; --bg: #f4f7fc; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); padding: 40px 20px; color: #333; }
+        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a1d2e; font-size: 24px; margin-bottom: 30px; }
+        .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .section-title { font-weight: 700; color: var(--accent); font-size: 14px; margin-bottom: 15px; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .field { margin-bottom: 10px; }
+        label { display: block; font-size: 12px; color: #777; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 20px; }
+        .btn:hover { background: #2a65d4; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div class="logo-tag">Candela Korea</div>
-        <h1>데모 신청 & 합의서 생성기</h1>
-        <p style="color:var(--muted); font-size: 13px;">내용 입력 후 워드 파일로 즉시 저장하세요</p>
-    </header>
-
-    <div class="card">
-        <div class="card-title">1. 신청 기본 정보</div>
-        <div class="row">
-            <div class="field">
-                <label>참조번호</label>
-                <input id="ref_no" type="text" placeholder="예: 20260423-D01">
-            </div>
-            <div class="field">
-                <label>신청일자</label>
-                <input id="doc_date" type="date">
-            </div>
-        </div>
-        <div class="row">
-            <div class="field">
-                <label>신청부서</label>
-                <input id="dept" type="text" value="Sales Team">
-            </div>
-            <div class="field">
-                <label>신청자</label>
-                <input id="requester" type="text" placeholder="성함 입력">
-            </div>
+    <h1>데모 신청 & 합의서 생성</h1>
+    
+    <div class="section">
+        <div class="section-title">기본 정보</div>
+        <div class="grid">
+            <div class="field"><label>신청자</label><input type="text" id="requester" value="박윤아"></div>
+            <div class="field"><label>신청일자</label><input type="date" id="doc_date"></div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-title">2. 대상 병원 정보</div>
-        <div class="row">
-            <div class="field">
-                <label>병원명</label>
-                <input id="hospital" type="text" placeholder="대상 병원명">
-            </div>
-            <div class="field">
-                <label>원장님 성함</label>
-                <input id="doctor" type="text" placeholder="원장님 성함">
-            </div>
+    <div class="section">
+        <div class="section-title">대상 병원</div>
+        <div class="grid">
+            <div class="field"><label>병원명</label><input type="text" id="hospital" placeholder="병원명 입력"></div>
+            <div class="field"><label>원장명</label><input type="text" id="doctor" placeholder="원장님 성함"></div>
         </div>
-        <div class="row single">
-            <div class="field">
-                <label>주소</label>
-                <input id="address" type="text" placeholder="병원 상세 주소">
-            </div>
-        </div>
+        <div class="field"><label>주소</label><input type="text" id="address" placeholder="병원 주소"></div>
     </div>
 
-    <div class="card">
-        <div class="card-title">3. 데모 장비 내역</div>
-        <div class="row">
+    <div class="section">
+        <div class="section-title">장비 정보</div>
+        <div class="grid">
             <div class="field">
                 <label>장비 모델</label>
-                <select id="model" onchange="showSpecs()">
-                    <option value="">-- 모델 선택 --</option>
+                <select id="model">
                     <option value="GentleMax Pro Plus">GentleMax Pro Plus</option>
-                    <option value="Vbeam Perfecta">Vbeam Perfecta</option>
                     <option value="PicoWay">PicoWay</option>
+                    <option value="Vbeam Perfecta">Vbeam Perfecta</option>
                     <option value="Nordlys">Nordlys</option>
                 </select>
             </div>
-            <div class="field">
-                <label>데모 기간</label>
-                <input id="period" type="text" placeholder="예: 2026.04.23 ~ 04.30">
-            </div>
+            <div class="field"><label>사용 기간</label><input type="text" id="period" placeholder="예: 4/23 ~ 4/30"></div>
         </div>
-        <div class="field">
-            <label>구성품 및 특약 (칩 클릭)</label>
-            <div id="chip_container" style="margin-top: 5px;">
-                </div>
-            <textarea id="final_specs" placeholder="선택한 항목이 여기에 표시됩니다." style="margin-top:10px; min-height:80px;"></textarea>
-        </div>
+        <div class="field"><label>상세 구성 (핸드피스 등)</label><textarea id="specs" rows="3"></textarea></div>
     </div>
 
-    <div class="card">
-        <div class="card-title">4. 장비 사용 합의 사항</div>
-        <div class="agreement-box">
-            <p><strong>제1조 (소유권)</strong> 본 장비의 소유권은 '켄델라코리아'에 있으며, '고객'은 대여 기간 동안 선량한 관리자의 주의의무를 다해야 합니다.</p>
-            <p><strong>제2조 (파손 책임)</strong> '고객'의 귀책사유로 인한 장비 파손 및 분실 시 '고객'은 수리비 또는 교체 비용 전액을 부담합니다.</p>
-            <p><strong>제3조 (무단 이동 금지)</strong> 장비는 지정된 장소 이외로 무단 이동하거나 제3자에게 대여할 수 없습니다.</p>
-        </div>
-        <div class="field">
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                <input type="checkbox" id="agree_chk" style="width:auto;"> 위 합의 사항을 확인하였으며 이에 동의합니다.
-            </label>
-        </div>
-    </div>
-
-    <button class="btn-generate" onclick="generateDoc()">📄 신청서 & 합의서 워드 다운로드</button>
+    <button class="btn" onclick="exportToWord()">파일 다운로드 (MS Word용)</button>
 </div>
 
 <script>
-    // 오늘 날짜 기본값
     document.getElementById('doc_date').value = new Date().toISOString().substring(0, 10);
 
-    const specs = {
-        "GentleMax Pro Plus": ["Small HP (DCD)", "Medium HP", "Large HP", "DCD 3 box", "Air Cooling"],
-        "Vbeam Perfecta": ["DYE+PM 3 Set", "DCD 4 box", "Dye Kit Extra", "Calibration Port"],
-        "PicoWay": ["Zoom HP", "Resolve 1064", "Resolve 532", "Resolve Fusion"],
-        "Nordlys": ["VL555", "PR530", "Frax 1550", "SoftCool System"]
-    };
+    function exportToWord() {
+        // 입력 데이터 가져오기
+        const data = {
+            requester: document.getElementById('requester').value,
+            date: document.getElementById('doc_date').value,
+            hosp: document.getElementById('hospital').value,
+            doc: document.getElementById('doctor').value,
+            addr: document.getElementById('address').value,
+            model: document.getElementById('model').value,
+            period: document.getElementById('period').value,
+            specs: document.getElementById('specs').value.replace(/\n/g, '<br>')
+        };
 
-    function showSpecs() {
-        const model = document.getElementById('model').value;
-        const container = document.getElementById('chip_container');
-        container.innerHTML = "";
-        if (specs[model]) {
-            specs[model].forEach(s => {
-                const span = document.createElement('span');
-                span.className = 'spec-chip';
-                span.innerText = s;
-                span.onclick = function() {
-                    this.classList.toggle('active');
-                    updateText();
-                };
-                container.appendChild(span);
-            });
-        }
+        // 워드용 HTML 템플릿 생성
+        const content = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Demo Agreement</title>
+            <style>
+                body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
+                h1 { text-align: center; font-size: 20pt; text-decoration: underline; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { border: 1px solid #000; padding: 10px; text-align: left; font-size: 10pt; }
+                .footer { margin-top: 50px; text-align: center; }
+            </style>
+            </head>
+            <body>
+                <h1>데모 장비 사용 신청 및 합의서</h1>
+                <p style="text-align:right;">신청일: ${data.date}</p>
+                
+                <h3>1. 신청 정보</h3>
+                <table>
+                    <tr><th width="20%">신청자</th><td>${data.requester}</td><th width="20%">부서</th><td>Sales Team</td></tr>
+                    <tr><th>병원명</th><td>${data.hosp}</td><th>원장명</th><td>${data.doc}</td></tr>
+                    <tr><th>주소</th><td colspan="3">${data.addr}</td></tr>
+                </table>
+
+                <h3>2. 데모 내역</h3>
+                <table>
+                    <tr><th width="20%">장비 모델</th><td>${data.model}</td></tr>
+                    <tr><th>사용 기간</th><td>${data.period}</td></tr>
+                    <tr><th>상세 구성</th><td>${data.specs}</td></tr>
+                </table>
+
+                <h3>3. 합의 사항</h3>
+                <p>본 장비 사용과 관련하여 고객은 켄델라코리아의 관리 규정을 준수하며, 대여 기간 중 발생하는 장비의 파손, 분실에 대해 원상복구 또는 실비 변상의 책임을 질 것에 합의합니다.</p>
+                
+                <div class="footer">
+                    <p>2026년    월    일</p>
+                    <br><br>
+                    <p>신청인 (병원): ____________________ (인)</p>
+                    <p>공급인 (켄델라): ____________________ (인)</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // 파일 다운로드 실행
+        const blob = new Blob(['\ufeff' + content], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `데모신청서_${data.hosp || '미지정'}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
+</script>
 
-    function updateText() {
+</body>
+</html>
