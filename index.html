@@ -1,145 +1,106 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
-import pdfplumber
-import re
-import win32com.client as win32
-import os
-
-# ──────────────────────────────────────────────────────────────
-# ★ 설정값 (박윤아 님 환경에 맞춤)
-# ──────────────────────────────────────────────────────────────
-DEFAULT_RECIPIENTS = "billing.korea@candelamedical.com"
-MAIL_OUTRO = "<br><br>감사합니다.<br><br>박윤아 드림"
-
-class TaxMailApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("📄 세금계산서 메일 자동 생성기")
-        self.geometry("600x500")
-        self.configure(bg="#f0f4f8")
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장비 신청 시스템</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; margin: 0; display: flex; background: #f5f6f7; }
         
-        self.pdf_path = tk.StringVar()
-        self._build_ui()
+        /* 사이드바 */
+        .sidebar { width: 250px; height: 100vh; background: #2c3e50; color: white; position: fixed; padding: 20px; }
+        .sidebar h2 { font-size: 1.1rem; margin-bottom: 30px; border-bottom: 1px solid #555; padding-bottom: 10px; }
+        .nav-item { display: block; color: #adb5bd; text-decoration: none; padding: 12px; border-radius: 5px; margin-bottom: 5px; cursor: pointer; }
+        .nav-item:hover, .nav-item.active { background: #34495e; color: white; }
 
-    def _build_ui(self):
-        # 헤더
-        header = tk.Frame(self, bg="#1a3a5c", height=60)
-        header.pack(fill="x")
-        tk.Label(header, text="📄 세금계산서 메일 발송기", font=("맑은 고딕", 14, "bold"), bg="#1a3a5c", fg="white").pack(pady=15)
+        /* 메인 콘텐츠 */
+        .main-content { margin-left: 250px; padding: 40px; width: 100%; max-width: 900px; }
+        .page { display: none; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .page.active { display: block; }
 
-        main = tk.Frame(self, bg="#f0f4f8")
-        main.pack(fill="both", expand=True, padx=20, pady=20)
+        /* 테이블 및 폼 스타일 */
+        h1 { font-size: 1.5rem; color: #333; margin-bottom: 20px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 0.9rem; }
+        th { background: #f8f9fa; width: 20%; }
+        input[type="text"], input[type="date"], textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        .agreement-text { background: #f9f9f9; padding: 15px; border: 1px solid #eee; height: 200px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; margin-bottom: 20px; }
+        .btn-submit { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; float: right; }
+    </style>
+</head>
+<body>
 
-        # 파일 선택
-        tk.Label(main, text="1. 세금계산서 PDF 선택", bg="#f0f4f8", font=("맑은 고딕", 10, "bold")).pack(anchor="w")
-        file_row = tk.Frame(main, bg="#f0f4f8")
-        file_row.pack(fill="x", pady=5)
-        tk.Entry(file_row, textvariable=self.pdf_path, width=50).pack(side="left", padx=5)
-        tk.Button(file_row, text="찾기", command=self._browse_pdf).pack(side="left")
+    <nav class="sidebar">
+        <h2>데모 관리 시스템</h2>
+        <a onclick="showPage('page1')" class="nav-item active" id="menu-page1">1. 데모장비신청서</a>
+        <a onclick="showPage('page2')" class="nav-item" id="menu-page2">2. 장비사용합의서</a>
+    </nav>
 
-        # 결과 미리보기
-        tk.Label(main, text="2. 파싱 결과 미리보기", bg="#f0f4f8", font=("맑은 고딕", 10, "bold")).pack(anchor="w", pady=(15, 0))
-        self.txt_preview = tk.Text(main, height=12, font=("맑은 고딕", 9))
-        self.txt_preview.pack(fill="both", expand=True, pady=5)
+    <main class="main-content">
+        <section id="page1" class="page active">
+            <h1>켄델라 코리아 장비 사용신청서</h1>
+            <table>
+                <tr>
+                    <th>신청일자</th><td><input type="date"></td>
+                    <th>신청목적</th><td><input type="text" value="DEMO"></td>
+                </tr>
+                <tr>
+                    <th>신청부서</th><td><input type="text" placeholder="예: Sales Team"></td>
+                    <th>신청자</th><td><input type="text"></td>
+                </tr>
+                <tr>
+                    <th>대상병원명</th><td><input type="text"></td>
+                    <th>원장님 성함</th><td><input type="text"></td>
+                </tr>
+                <tr>
+                    <th>주소</th><td colspan="3"><input type="text"></td>
+                </tr>
+                <tr>
+                    <th>신청 장비</th><td><input type="text" placeholder="시스템명"></td>
+                    <th>핸드피스</th><td><input type="text" placeholder="핸드피스 사양"></td>
+                </tr>
+                <tr>
+                    <th>사용기간</th><td colspan="3"><input type="date" style="width:45%"> ~ <input type="date" style="width:45%"></td>
+                </tr>
+            </table>
+            <button class="btn-submit">신청서 저장</button>
+        </section>
 
-        # 실행 버튼
-        btn_frame = tk.Frame(main, bg="#f0f4f8")
-        btn_frame.pack(fill="x", pady=10)
-        tk.Button(btn_frame, text="🔍 데이터 추출", command=self._parse_and_show, bg="#4a90d9", fg="white", width=15).pack(side="left", padx=5)
-        tk.Button(btn_frame, text="✉️ 아웃룩 메일 쓰기", command=self._create_mail, bg="#27ae60", fg="white", width=15).pack(side="left", padx=5)
+        <section id="page2" class="page">
+            <h1>장비 사용 합의서</h1>
+            <div class="agreement-text">
+                <p><strong>제1조 (장비의 대여 및 소유권)</strong> 켄델라코리아는 부록A에 열거된 장비를 고객이 지정된 장소에서 사용할 수 있도록 대여하며, 소유권은 켄델라코리아에 있습니다.</p>
+                <p><strong>제2조 (의무)</strong> 고객은 장비를 선량한 관리자의 주의의무를 다하여 관리해야 하며, 임의로 이동하거나 타인에게 양도할 수 없습니다.</p>
+                <p><strong>제6조 (책임의 제한)</strong> 켄델라코리아는 장비 사용으로 발생할 수 있는 간접적, 부수적 손해에 대해 책임을 지지 않습니다.</p>
+                </div>
+            <table>
+                <tr>
+                    <th>고객명(병원)</th><td><input type="text"></td>
+                </tr>
+                <tr>
+                    <th>발효일</th><td><input type="date"></td>
+                </tr>
+                <tr>
+                    <th>사용 종료일</th><td><input type="date"></td>
+                </tr>
+            </table>
+            <label><input type="checkbox"> 위 모든 조항에 동의합니다.</label>
+            <button class="btn-submit">합의서 확인</button>
+        </section>
+    </main>
 
-    def _browse_pdf(self):
-        path = filedialog.askopenfilename(filetypes=[("PDF 파일", "*.pdf")])
-        if path:
-            self.pdf_path.set(path)
-
-    def _parse_pdf(self, file_path):
-        """PDF에서 공급자, 금액, 품목(비용목적) 추출"""
-        data = {
-            "supplier": "",
-            "amount": "0",
-            "item": "",
-            "date_info": "26년 3월" # 기본값 (필요시 PDF 날짜에서 추출 가능)
+    <script>
+        function showPage(pageId) {
+            // 모든 페이지 숨기기
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // 선택한 페이지 보이기
+            document.getElementById(pageId).classList.add('active');
+            
+            // 메뉴 활성화 스타일 변경
+            document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
+            document.getElementById('menu-' + pageId).classList.add('active');
         }
-        
-        with pdfplumber.open(file_path) as pdf:
-            text = pdf.pages[0].extract_text()
-            tables = pdf.pages[0].extract_tables()
-
-            # 1. 공급자 추출 (보리메디칼, 동안기획 등)
-            # 공급자 섹션의 상호명을 찾음
-            lines = text.split('\n')
-            for i, line in enumerate(lines):
-                if "공급자" in line:
-                    # 다음 줄이나 해당 줄에서 상호명 추출 (패턴 매칭)
-                    match = re.search(r'(주식회사\s?\w+|[\w\s]+기획)', text)
-                    if match:
-                        data["supplier"] = match.group(0).strip()
-
-            # 2. 합계금액 및 품목 추출 (테이블 활용)
-            for table in tables:
-                for row in table:
-                    # 합계금액 찾기
-                    if "합계금액" in str(row):
-                        # 숫자만 추출
-                        clean_row = [str(cell).replace(',', '') for cell in row if cell]
-                        for cell in clean_row:
-                            if cell.isdigit():
-                                data["amount"] = format(int(cell), ',')
-                    
-                    # 품목(비용 목적) 찾기
-                    if "판매수수료" in str(row):
-                        for cell in row:
-                            if cell and "판매수수료" in cell:
-                                data["item"] = cell.replace('\n', ' ').strip()
-
-        return data
-
-    def _parse_and_show(self):
-        path = self.pdf_path.get()
-        if not path:
-            messagebox.showwarning("경고", "파일을 선택하세요.")
-            return
-        
-        try:
-            self.parsed_data = self._parse_pdf(path)
-            
-            # 메일 본문 구성
-            preview_text = f"<{self.parsed_data['supplier']}>\n"
-            preview_text += f"1. 비용 목적 : {self.parsed_data['item']} 커미션 지급\n"
-            preview_text += f"2. 지급 금액(10% VAT포함) : {self.parsed_data['amount']}\n"
-            preview_text += f"3. 지급 날짜: 차후 정기지급일\n"
-            preview_text += f"4. 지급 방법: 변동 없음\n"
-            preview_text += f"5. PR: (번호 입력 필요)\n"
-            preview_text += f"6. 첨부파일: PR증빙"
-            
-            self.txt_preview.delete(1.0, tk.END)
-            self.txt_preview.insert(tk.END, preview_text)
-        except Exception as e:
-            messagebox.showerror("오류", f"PDF 파싱 중 오류 발생: {e}")
-
-    def _create_mail(self):
-        try:
-            content = self.txt_preview.get(1.0, tk.END).strip()
-            if not content:
-                return
-
-            outlook = win32.Dispatch("Outlook.Application")
-            mail = outlook.CreateItem(0)
-            
-            mail.To = DEFAULT_RECIPIENTS
-            mail.Subject = f"[{self.parsed_data['supplier']}] 세금계산서 및 지급 요청의 건"
-            
-            # 텍스트의 줄바꿈을 HTML <br>로 변환
-            html_content = content.replace("\n", "<br>")
-            mail.HTMLBody = f"안녕하세요, 켄델라코리아 박윤아입니다.<br><br>{html_content}{MAIL_OUTRO}"
-            
-            # 파일 첨부
-            mail.Attachments.Add(os.path.abspath(self.pdf_path.get()))
-            
-            mail.Display()
-        except Exception as e:
-            messagebox.showerror("메일 오류", f"아웃룩 연동 오류: {e}")
-
-if __name__ == "__main__":
-    TaxMailApp().mainloop()
+    </script>
+</body>
+</html>
