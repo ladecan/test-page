@@ -5,101 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>장비 신청 시스템</title>
     <style>
-        body { font-family: 'Pretendard', sans-serif; margin: 0; display: flex; background: #f5f6f7; }
+        /* 기본 레이아웃 설정 */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; display: flex; background: #f5f6f7; color: #333; }
         
-        /* 사이드바 */
-        .sidebar { width: 250px; height: 100vh; background: #2c3e50; color: white; position: fixed; padding: 20px; }
-        .sidebar h2 { font-size: 1.1rem; margin-bottom: 30px; border-bottom: 1px solid #555; padding-bottom: 10px; }
-        .nav-item { display: block; color: #adb5bd; text-decoration: none; padding: 12px; border-radius: 5px; margin-bottom: 5px; cursor: pointer; }
-        .nav-item:hover, .nav-item.active { background: #34495e; color: white; }
+        /* 왼쪽 사이드바 스타일 */
+        .sidebar { width: 260px; height: 100vh; background: #2c3e50; color: white; position: fixed; padding: 25px 20px; box-sizing: border-box; }
+        .sidebar h2 { font-size: 1.2rem; margin-bottom: 40px; border-bottom: 1px solid #5d6d7e; padding-bottom: 15px; letter-spacing: 1px; }
+        .nav-item { display: block; color: #adb5bd; text-decoration: none; padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; }
+        .nav-item:hover { background: #34495e; color: white; }
+        .nav-item.active { background: #3498db; color: white; font-weight: bold; }
 
-        /* 메인 콘텐츠 */
-        .main-content { margin-left: 250px; padding: 40px; width: 100%; max-width: 900px; }
-        .page { display: none; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        /* 메인 콘텐츠 영역 스타일 */
+        .main-content { margin-left: 260px; padding: 50px; width: 100%; max-width: 1000px; box-sizing: border-box; }
+        .page { display: none; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         .page.active { display: block; }
 
-        /* 테이블 및 폼 스타일 */
-        h1 { font-size: 1.5rem; color: #333; margin-bottom: 20px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 0.9rem; }
-        th { background: #f8f9fa; width: 20%; }
-        input[type="text"], input[type="date"], textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        /* 제목 및 테이블 스타일 */
+        h1 { font-size: 1.6rem; color: #2c3e50; margin-bottom: 30px; text-align: center; border-bottom: 2px solid #3498db; display: inline-block; padding-bottom: 5px; }
+        .section-title { font-size: 1.1rem; font-weight: bold; margin: 25px 0 10px 0; color: #e67e22; }
         
-        .agreement-text { background: #f9f9f9; padding: 15px; border: 1px solid #eee; height: 200px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; margin-bottom: 20px; }
-        .btn-submit { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; float: right; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed; }
+        th, td { border: 1px solid #dee2e6; padding: 12px 15px; font-size: 0.95rem; }
+        th { background: #f8f9fa; color: #495057; width: 20%; text-align: left; }
+        
+        /* 입력창 스타일 */
+        input[type="text"], input[type="date"], textarea { 
+            width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;
+        }
+        input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52,152,219,0.3); }
+
+        /* 합의서 텍스트 영역 */
+        .agreement-box { 
+            background: #fdfdfd; padding: 20px; border: 1px solid #eee; height: 250px; overflow-y: auto; 
+            font-size: 0.9rem; line-height: 1.7; margin-bottom: 25px; color: #555; border-radius: 5px;
+        }
+
+        /* 버튼 스타일 */
+        .button-container { text-align: right; margin-top: 30px; }
+        .btn-save { 
+            background: #3498db; color: white; border: none; padding: 12px 30px; border-radius: 6px; 
+            font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; 
+        }
+        .btn-save:hover { background: #2980b9; }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
-        <h2>데모 관리 시스템</h2>
+        <h2>CANDELA KOREA</h2>
         <a onclick="showPage('page1')" class="nav-item active" id="menu-page1">1. 데모장비신청서</a>
         <a onclick="showPage('page2')" class="nav-item" id="menu-page2">2. 장비사용합의서</a>
     </nav>
 
     <main class="main-content">
+        
         <section id="page1" class="page active">
             <h1>켄델라 코리아 장비 사용신청서</h1>
+            
+            <div class="section-title">[데모장비 요청내역]</div>
             <table>
                 <tr>
-                    <th>신청일자</th><td><input type="date"></td>
-                    <th>신청목적</th><td><input type="text" value="DEMO"></td>
+                    <th>신청일자</th><td><input type="date" id="apply_date"></td>
+                    <th>신청목적</th><td><input type="text" id="apply_purpose" value="DEMO"></td>
                 </tr>
                 <tr>
-                    <th>신청부서</th><td><input type="text" placeholder="예: Sales Team"></td>
-                    <th>신청자</th><td><input type="text"></td>
+                    <th>신청부서</th><td><input type="text" id="dept" placeholder="Sales Team"></td>
+                    <th>신청자</th><td><input type="text" id="requester"></td>
                 </tr>
                 <tr>
-                    <th>대상병원명</th><td><input type="text"></td>
-                    <th>원장님 성함</th><td><input type="text"></td>
+                    <th>대상병원명</th><td><input type="text" id="hospital_name"></td>
+                    <th>원장님 성함</th><td><input type="text" id="doctor_name"></td>
                 </tr>
                 <tr>
-                    <th>주소</th><td colspan="3"><input type="text"></td>
+                    <th>주소</th><td colspan="3"><input type="text" id="address"></td>
                 </tr>
                 <tr>
-                    <th>신청 장비</th><td><input type="text" placeholder="시스템명"></td>
-                    <th>핸드피스</th><td><input type="text" placeholder="핸드피스 사양"></td>
+                    <th>신청 장비</th><td><input type="text" id="device_model" placeholder="시스템명"></td>
+                    <th>핸드피스</th><td><input type="text" id="handpiece" placeholder="사양 기재"></td>
                 </tr>
                 <tr>
-                    <th>사용기간</th><td colspan="3"><input type="date" style="width:45%"> ~ <input type="date" style="width:45%"></td>
+                    <th>사용기간</th>
+                    <td colspan="3">
+                        <input type="date" id="start_date" style="width:45%"> ~ 
+                        <input type="date" id="end_date" style="width:45%">
+                    </td>
                 </tr>
             </table>
-            <button class="btn-submit">신청서 저장</button>
+
+            <div class="button-container">
+                <button class="btn-save" onclick="saveData('page1')">신청서 저장하기</button>
+            </div>
         </section>
 
         <section id="page2" class="page">
             <h1>장비 사용 합의서</h1>
-            <div class="agreement-text">
+            
+            <div class="agreement-box">
                 <p><strong>제1조 (장비의 대여 및 소유권)</strong> 켄델라코리아는 부록A에 열거된 장비를 고객이 지정된 장소에서 사용할 수 있도록 대여하며, 소유권은 켄델라코리아에 있습니다.</p>
                 <p><strong>제2조 (의무)</strong> 고객은 장비를 선량한 관리자의 주의의무를 다하여 관리해야 하며, 임의로 이동하거나 타인에게 양도할 수 없습니다.</p>
-                <p><strong>제6조 (책임의 제한)</strong> 켄델라코리아는 장비 사용으로 발생할 수 있는 간접적, 부수적 손해에 대해 책임을 지지 않습니다.</p>
-                </div>
+                <p><strong>제3조 (사용 및 유지보수)</strong> 고객은 장비를 관련 법규 및 제조사의 지침에 따라 적절히 사용해야 합니다.</p>
+                <p><strong>제4조 (손실 및 손상)</strong> 대여 기간 중 고객의 귀책사유로 발생한 장비의 분실, 파손에 대해서는 고객이 수리비용 또는 교체비용을 부담합니다.</p>
+                <p><strong>제5조 (기간 및 종료)</strong> 본 합의서는 명시된 사용 종료일에 자동 종료되며, 고객은 지체 없이 장비를 반납해야 합니다.</p>
+            </div>
+
             <table>
                 <tr>
-                    <th>고객명(병원)</th><td><input type="text"></td>
+                    <th>병원명(고객)</th>
+                    <td><input type="text" id="agree_hospital" placeholder="병원명을 입력하세요"></td>
                 </tr>
                 <tr>
-                    <th>발효일</th><td><input type="date"></td>
+                    <th>발효일</th>
+                    <td><input type="date" id="agree_start"></td>
                 </tr>
                 <tr>
-                    <th>사용 종료일</th><td><input type="date"></td>
+                    <th>종료일</th>
+                    <td><input type="date" id="agree_end"></td>
                 </tr>
             </table>
-            <label><input type="checkbox"> 위 모든 조항에 동의합니다.</label>
-            <button class="btn-submit">합의서 확인</button>
+
+            <div style="margin-top: 20px;">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" id="agree_chk"> 위 조항을 모두 숙지하였으며 이에 동의합니다.
+                </label>
+            </div>
+
+            <div class="button-container">
+                <button class="btn-save" onclick="saveData('page2')">합의서 최종 확인</button>
+            </div>
         </section>
+
     </main>
 
     <script>
+        // 1. 페이지 전환 함수
         function showPage(pageId) {
             // 모든 페이지 숨기기
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             // 선택한 페이지 보이기
             document.getElementById(pageId).classList.add('active');
             
-            // 메뉴 활성화 스타일 변경
+            // 메뉴 스타일 변경
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
             document.getElementById('menu-' + pageId).classList.add('active');
+        }
+
+        // 2. 데이터 저장 및 반응 함수
+        function saveData(pageName) {
+            const inputs = document.querySelectorAll(`#${pageName} input`);
+            let resultData = {};
+            let isAllFilled = true;
+
+            // 데이터 수집 루프
+            inputs.forEach(input => {
+                if (input.type !== 'checkbox') {
+                    if(!input.value) isAllFilled = false; // 빈값이 있는지 체크
+                    resultData[input.id] = input.value;
+                } else {
+                    resultData['agreed'] = input.checked;
+                }
+            });
+
+            // 합의서 동의 체크 여부 확인 (2페이지일 때만)
+            if (pageName === 'page2' && !document.getElementById('agree_chk').checked) {
+                alert("합의서 동의 체크박스에 체크해 주세요.");
+                return;
+            }
+
+            // 결과 처리
+            console.log("저장된 데이터 내역:", resultData);
+            
+            if (!isAllFilled) {
+                alert("모든 항목을 입력해 주세요! (콘솔 창에서 저장된 데이터를 확인할 수 있습니다.)");
+            } else {
+                alert("정상적으로 저장되었습니다.\n(개발자 도구 Console 탭에서 수집된 데이터를 확인하세요)");
+            }
         }
     </script>
 </body>
