@@ -1,364 +1,145 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commission Calculator</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap');
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import pdfplumber
+import re
+import win32com.client as win32
+import os
 
-:root {
-  --bg: #f5f2ec;
-  --surface: #ffffff;
-  --border: #e0dbd0;
-  --text: #1a1814;
-  --muted: #8a847a;
-  --accent: #2d5a3d;
-  --accent-light: #e8f0eb;
-  --mono: 'DM Mono', monospace;
-  --serif: 'Instrument Serif', serif;
-}
+# ──────────────────────────────────────────────────────────────
+# ★ 설정값 (박윤아 님 환경에 맞춤)
+# ──────────────────────────────────────────────────────────────
+DEFAULT_RECIPIENTS = "billing.korea@candelamedical.com"
+MAIL_OUTRO = "<br><br>감사합니다.<br><br>박윤아 드림"
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+class TaxMailApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("📄 세금계산서 메일 자동 생성기")
+        self.geometry("600x500")
+        self.configure(bg="#f0f4f8")
+        
+        self.pdf_path = tk.StringVar()
+        self._build_ui()
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  min-height: 100vh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 48px 24px;
-}
+    def _build_ui(self):
+        # 헤더
+        header = tk.Frame(self, bg="#1a3a5c", height=60)
+        header.pack(fill="x")
+        tk.Label(header, text="📄 세금계산서 메일 발송기", font=("맑은 고딕", 14, "bold"), bg="#1a3a5c", fg="white").pack(pady=15)
 
-.card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  padding: 36px;
-  width: 100%;
-  max-width: 480px;
-}
+        main = tk.Frame(self, bg="#f0f4f8")
+        main.pack(fill="both", expand=True, padx=20, pady=20)
 
-h1 {
-  font-family: var(--serif);
-  font-size: 1.7rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
-}
-.subtitle {
-  font-size: 0.68rem;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  margin-bottom: 32px;
-}
+        # 파일 선택
+        tk.Label(main, text="1. 세금계산서 PDF 선택", bg="#f0f4f8", font=("맑은 고딕", 10, "bold")).pack(anchor="w")
+        file_row = tk.Frame(main, bg="#f0f4f8")
+        file_row.pack(fill="x", pady=5)
+        tk.Entry(file_row, textvariable=self.pdf_path, width=50).pack(side="left", padx=5)
+        tk.Button(file_row, text="찾기", command=self._browse_pdf).pack(side="left")
 
-.row { margin-bottom: 24px; }
+        # 결과 미리보기
+        tk.Label(main, text="2. 파싱 결과 미리보기", bg="#f0f4f8", font=("맑은 고딕", 10, "bold")).pack(anchor="w", pady=(15, 0))
+        self.txt_preview = tk.Text(main, height=12, font=("맑은 고딕", 9))
+        self.txt_preview.pack(fill="both", expand=True, pady=5)
 
-label {
-  display: block;
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
+        # 실행 버튼
+        btn_frame = tk.Frame(main, bg="#f0f4f8")
+        btn_frame.pack(fill="x", pady=10)
+        tk.Button(btn_frame, text="🔍 데이터 추출", command=self._parse_and_show, bg="#4a90d9", fg="white", width=15).pack(side="left", padx=5)
+        tk.Button(btn_frame, text="✉️ 아웃룩 메일 쓰기", command=self._create_mail, bg="#27ae60", fg="white", width=15).pack(side="left", padx=5)
 
-.calc-input {
-  width: 100%;
-  padding: 13px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-family: var(--mono);
-  font-size: 1rem;
-  background: var(--bg);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.calc-input:focus { border-color: var(--accent); }
+    def _browse_pdf(self):
+        path = filedialog.askopenfilename(filetypes=[("PDF 파일", "*.pdf")])
+        if path:
+            self.pdf_path.set(path)
 
-/* Stepper */
-.stepper {
-  display: flex;
-  align-items: stretch;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  width: fit-content;
-}
-.step-btn {
-  background: var(--bg);
-  border: none;
-  padding: 13px 22px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: var(--text);
-  font-family: var(--mono);
-  transition: background 0.1s;
-  user-select: none;
-}
-.step-btn:hover { background: var(--accent-light); color: var(--accent); }
-.step-btn:active { background: var(--accent); color: white; }
-.step-val {
-  padding: 13px 32px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  border-left: 1.5px solid var(--border);
-  border-right: 1.5px solid var(--border);
-  min-width: 80px;
-  text-align: center;
-  background: var(--surface);
-}
-.step-note { font-size: 0.68rem; color: var(--muted); margin-top: 7px; }
+    def _parse_pdf(self, file_path):
+        """PDF에서 공급자, 금액, 품목(비용목적) 추출"""
+        data = {
+            "supplier": "",
+            "amount": "0",
+            "item": "",
+            "date_info": "26년 3월" # 기본값 (필요시 PDF 날짜에서 추출 가능)
+        }
+        
+        with pdfplumber.open(file_path) as pdf:
+            text = pdf.pages[0].extract_text()
+            tables = pdf.pages[0].extract_tables()
 
-/* Button groups */
-.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+            # 1. 공급자 추출 (보리메디칼, 동안기획 등)
+            # 공급자 섹션의 상호명을 찾음
+            lines = text.split('\n')
+            for i, line in enumerate(lines):
+                if "공급자" in line:
+                    # 다음 줄이나 해당 줄에서 상호명 추출 (패턴 매칭)
+                    match = re.search(r'(주식회사\s?\w+|[\w\s]+기획)', text)
+                    if match:
+                        data["supplier"] = match.group(0).strip()
 
-.choice-btn {
-  padding: 10px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  cursor: pointer;
-  color: var(--text);
-  transition: all 0.12s;
-  line-height: 1.4;
-  text-align: left;
-}
-.choice-btn:hover { border-color: var(--accent); color: var(--accent); }
-.choice-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-.choice-btn .sub { display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 2px; }
-.choice-btn.active .sub { opacity: 0.7; }
+            # 2. 합계금액 및 품목 추출 (테이블 활용)
+            for table in tables:
+                for row in table:
+                    # 합계금액 찾기
+                    if "합계금액" in str(row):
+                        # 숫자만 추출
+                        clean_row = [str(cell).replace(',', '') for cell in row if cell]
+                        for cell in clean_row:
+                            if cell.isdigit():
+                                data["amount"] = format(int(cell), ',')
+                    
+                    # 품목(비용 목적) 찾기
+                    if "판매수수료" in str(row):
+                        for cell in row:
+                            if cell and "판매수수료" in cell:
+                                data["item"] = cell.replace('\n', ' ').strip()
 
-.rate-group { display: flex; gap: 8px; }
-.rate-btn {
-  flex: 1;
-  padding: 13px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  font-family: var(--mono);
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--text);
-  transition: all 0.12s;
-  text-align: center;
-}
-.rate-btn:hover { border-color: var(--accent); color: var(--accent); }
-.rate-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+        return data
 
-/* Divider */
-.divider { border: none; border-top: 1.5px solid var(--border); margin: 28px 0; }
+    def _parse_and_show(self):
+        path = self.pdf_path.get()
+        if not path:
+            messagebox.showwarning("경고", "파일을 선택하세요.")
+            return
+        
+        try:
+            self.parsed_data = self._parse_pdf(path)
+            
+            # 메일 본문 구성
+            preview_text = f"<{self.parsed_data['supplier']}>\n"
+            preview_text += f"1. 비용 목적 : {self.parsed_data['item']} 커미션 지급\n"
+            preview_text += f"2. 지급 금액(10% VAT포함) : {self.parsed_data['amount']}\n"
+            preview_text += f"3. 지급 날짜: 차후 정기지급일\n"
+            preview_text += f"4. 지급 방법: 변동 없음\n"
+            preview_text += f"5. PR: (번호 입력 필요)\n"
+            preview_text += f"6. 첨부파일: PR증빙"
+            
+            self.txt_preview.delete(1.0, tk.END)
+            self.txt_preview.insert(tk.END, preview_text)
+        except Exception as e:
+            messagebox.showerror("오류", f"PDF 파싱 중 오류 발생: {e}")
 
-/* Result */
-.result-box {
-  background: var(--text);
-  color: white;
-  border-radius: 12px;
-  padding: 24px;
-}
-.result-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 7px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-.result-row:last-child { border-bottom: none; }
-.r-label { font-size: 0.67rem; opacity: 0.45; letter-spacing: 0.04em; }
-.r-val { font-size: 0.88rem; font-variant-numeric: tabular-nums; }
-.r-val.empty { opacity: 0.3; }
+    def _create_mail(self):
+        try:
+            content = self.txt_preview.get(1.0, tk.END).strip()
+            if not content:
+                return
 
-.result-total {
-  margin-top: 10px;
-  padding-top: 16px !important;
-  border-top: 1px solid rgba(255,255,255,0.18) !important;
-  border-bottom: none !important;
-}
-.result-total .r-label { font-size: 0.72rem; opacity: 0.6; }
-.result-total .r-val {
-  font-family: var(--serif);
-  font-size: 1.5rem;
-  color: #a8d5b5;
-}
-.result-total .r-val.empty { color: rgba(168,213,181,0.3); }
+            outlook = win32.Dispatch("Outlook.Application")
+            mail = outlook.CreateItem(0)
+            
+            mail.To = DEFAULT_RECIPIENTS
+            mail.Subject = f"[{self.parsed_data['supplier']}] 세금계산서 및 지급 요청의 건"
+            
+            # 텍스트의 줄바꿈을 HTML <br>로 변환
+            html_content = content.replace("\n", "<br>")
+            mail.HTMLBody = f"안녕하세요, 켄델라코리아 박윤아입니다.<br><br>{html_content}{MAIL_OUTRO}"
+            
+            # 파일 첨부
+            mail.Attachments.Add(os.path.abspath(self.pdf_path.get()))
+            
+            mail.Display()
+        except Exception as e:
+            messagebox.showerror("메일 오류", f"아웃룩 연동 오류: {e}")
 
-footer {
-  text-align: center;
-  font-size: 0.65rem;
-  color: var(--muted);
-  margin-top: 24px;
-}
-</style>
-</head>
-<body>
-
-<div>
-  <div class="card">
-    <h1>Commission<br>Calculator</h1>
-    <p class="subtitle">CANDELA KOREA · VAT INCLUDED</p>
-
-    <div class="row">
-      <label>총 계약금액 (부가세 별도)</label>
-      <input class="calc-input" type="text" id="contractInput" placeholder="예: 147,727,272">
-    </div>
-
-    <div class="row">
-      <label>DCD 박스 수</label>
-      <div class="stepper">
-        <button class="step-btn" id="stepMinus">−</button>
-        <div class="step-val" id="dcdVal">0</div>
-        <button class="step-btn" id="stepPlus">+</button>
-      </div>
-      <div class="step-note" id="dcdNote">차감 없음</div>
-    </div>
-
-    <div class="row">
-      <label>워런티 (Extended Warranty)</label>
-      <div class="btn-group">
-        <button class="choice-btn active" data-warranty="0">없음</button>
-        <button class="choice-btn" data-warranty="21000000">2년 · 2,100만원<span class="sub">'26년~ 납품</span></button>
-        <button class="choice-btn" data-warranty="20000000">2년 · 2,000만원<span class="sub">'26년 이전 납품</span></button>
-      </div>
-    </div>
-
-    <div class="row">
-      <label>수수료율</label>
-      <div class="rate-group">
-        <button class="rate-btn" data-rate="0.07">7%</button>
-        <button class="rate-btn active" data-rate="0.10">10%</button>
-      </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="result-box">
-      <div class="result-row">
-        <span class="r-label">총 계약금액</span>
-        <span class="r-val empty" id="rContract">—</span>
-      </div>
-      <div class="result-row">
-        <span class="r-label">DCD 차감</span>
-        <span class="r-val" id="rDCD">없음</span>
-      </div>
-      <div class="result-row">
-        <span class="r-label">워런티 차감</span>
-        <span class="r-val" id="rWarranty">없음</span>
-      </div>
-      <div class="result-row">
-        <span class="r-label">수수료 계산용 실적</span>
-        <span class="r-val empty" id="rActual">—</span>
-      </div>
-      <div class="result-row">
-        <span class="r-label">커미션</span>
-        <span class="r-val empty" id="rComm">—</span>
-      </div>
-      <div class="result-row">
-        <span class="r-label">세액 (10%)</span>
-        <span class="r-val empty" id="rTax">—</span>
-      </div>
-      <div class="result-row result-total">
-        <span class="r-label">최종 커미션 합계 (VAT 포함)</span>
-        <span class="r-val empty" id="rTotal">—</span>
-      </div>
-    </div>
-  </div>
-
-  <footer>Candela Korea Internal Use Only</footer>
-</div>
-
-<script>
-const fmt = n => Math.round(n).toLocaleString('ko-KR');
-
-let mDCD = 0, mWarranty = 0, mRate = 0.10;
-
-// 계약금액 입력
-document.getElementById('contractInput').addEventListener('input', function() {
-  let raw = this.value.replace(/[^0-9]/g, '');
-  this.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
-  calc();
-});
-
-// DCD 스테퍼
-document.getElementById('stepMinus').addEventListener('click', () => {
-  mDCD = Math.max(0, mDCD - 1);
-  updateDCD();
-  calc();
-});
-document.getElementById('stepPlus').addEventListener('click', () => {
-  mDCD++;
-  updateDCD();
-  calc();
-});
-function updateDCD() {
-  document.getElementById('dcdVal').textContent = mDCD;
-  const amt = mDCD * 750000;
-  document.getElementById('dcdNote').textContent = mDCD > 0
-    ? `${mDCD}박스 × 750,000 = -${fmt(amt)}원 차감`
-    : '차감 없음';
-}
-
-// 워런티 버튼
-document.querySelectorAll('.choice-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    mWarranty = parseInt(btn.dataset.warranty);
-    calc();
-  });
-});
-
-// 수수료율 버튼
-document.querySelectorAll('.rate-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    mRate = parseFloat(btn.dataset.rate);
-    calc();
-  });
-});
-
-function setVal(id, text, isEmpty) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.classList.toggle('empty', !!isEmpty);
-}
-
-function calc() {
-  const raw = document.getElementById('contractInput').value.replace(/[^0-9]/g, '');
-  const contract = raw ? parseInt(raw) : 0;
-
-  if (!contract) {
-    setVal('rContract', '—', true);
-    setVal('rActual', '—', true);
-    setVal('rComm', '—', true);
-    setVal('rTax', '—', true);
-    setVal('rTotal', '—', true);
-    document.getElementById('rDCD').textContent = '없음';
-    document.getElementById('rWarranty').textContent = '없음';
-    return;
-  }
-
-  const dcdAmt = mDCD * 750000;
-  const actual = contract - dcdAmt - mWarranty;
-  const comm = actual * mRate;
-  const tax = comm * 0.1;
-  const total = comm + tax;
-
-  setVal('rContract', fmt(contract), false);
-  document.getElementById('rDCD').textContent = dcdAmt > 0 ? `-${fmt(dcdAmt)}` : '없음';
-  document.getElementById('rWarranty').textContent = mWarranty > 0 ? `-${fmt(mWarranty)}` : '없음';
-  setVal('rActual', fmt(actual), false);
-  setVal('rComm', fmt(comm), false);
-  setVal('rTax', fmt(tax), false);
-  setVal('rTotal', fmt(total), false);
-}
-</script>
-</body>
-</html>
+if __name__ == "__main__":
+    TaxMailApp().mainloop()
