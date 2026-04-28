@@ -2174,6 +2174,7 @@ async function handleExcelUpload(input){
 
     const newQs = new Set([
       ...(biNew?.newQs||[]),
+      ...(biExtra?.newQs||[]),
       ...(confNew?.newQs||[])
     ]);
 
