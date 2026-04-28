@@ -2341,10 +2341,20 @@ function parseRealSheet(rows, existingQs){
   for(let i=1; i<rows.length; i++){
     const r = rows[i];
     const yr = parseInt(r[0])||0;
-    const period = parseInt(r[1])||0;
-    if(!yr || !period) continue;
-    const mo = period % 100;
-    const ql = toQKey(yr, mo);
+    if(!yr) continue;
+    // Period 컬럼: 202501 형식 또는 '25Q1' 형식 모두 처리
+    let ql;
+    const periodRaw = String(r[1]||'').trim();
+    const qMatch = periodRaw.match(/^(\d{2})Q(\d)$/);
+    if(qMatch){
+      ql = periodRaw; // '25Q1' 그대로 사용
+    } else {
+      const period = parseInt(periodRaw)||0;
+      if(!period) continue;
+      const mo = period % 100;
+      ql = toQKey(yr, mo);
+    }
+    if(!ql) continue;
     if(existingQs.has(ql)) continue;
     newQs.add(ql);
 
