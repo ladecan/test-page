@@ -2150,7 +2150,7 @@ async function handleExcelUpload(input){
     const wb = XLSX.read(buf, {type:'array', cellDates:true});
     const existingQs = new Set(DATA.quarterly.map(d=>d.q));
 
-    let biNew = null, confNew = null;
+    let biNew = null, biExtra = null, confNew = null;
 
     // ── total(Raw) 파싱 (SALES/RECURRING 분기별 매출)
     if(wb.SheetNames.includes('total(Raw)')){
@@ -2161,7 +2161,7 @@ async function handleExcelUpload(input){
     // ── BI Data 파싱 (제품/지역/SR/딜러/NV)
     if(wb.SheetNames.includes('BI Data')){
       const rows = XLSX.utils.sheet_to_json(wb.Sheets['BI Data'], {header:1});
-      const biExtra = parseBiDataSheet(rows, existingQs);
+      biExtra = parseBiDataSheet(rows, existingQs);
       if(biNew && biExtra) Object.assign(biNew, biExtra);
       else if(biExtra) biNew = biExtra;
     }
