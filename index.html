@@ -1959,7 +1959,7 @@ async function generateDoc(lang) {
   if (!startDate)  { alert('Start Date를 입력해주세요.'); return; }
   if (!endDate)    { alert('End Date를 입력해주세요.'); return; }
 
-  const btnId = lang === 'kor' ? 'btn_kor' : 'btn_eng';
+  const btnId = lang === 'kor' ? 'tnb_btn_kor' : 'tnb_btn_eng';
   const btn = document.getElementById(btnId);
   const origLabel = btn.innerHTML;
   btn.disabled = true;
